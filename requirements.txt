@@ -1,0 +1,13 @@
+jupyterlab
+matplotlib
+seaborn
+numpy
+pandas
+yfinance
+skfolio
+scipy
+statsmodels
+
+requests_cache
+openmeteo_requests
+retry_requests
