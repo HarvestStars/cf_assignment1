@@ -30,11 +30,12 @@ def d_u_hat_dt(t):  # 构造导数项
 residual_e = pd.read_csv('amsterdam_daily_temperature_AR1_residuals.csv', parse_dates=['date'], index_col='date')['residuals'].dropna().values
 t_data = np.arange(len(residual_e))
 e2_series = pd.Series(residual_e**2)
-y_data = pd.Series(np.sqrt(e2_series.rolling(window=15, center=True).mean())) # 用平滑值来代替 E[e^2], 从而得到 sigma^2(t)
-# 去除 y_data 中的 NaN，并同步处理 t_data
-valid_idx = ~np.isnan(y_data.values)
+sigma_data = pd.Series(np.sqrt(e2_series.rolling(window=15, center=True).mean())) # 用平滑值来代替 E[e^2], 从而得到 sigma^2(t)
+
+# 去除 sigma_data 中的 NaN，并同步处理 t_data
+valid_idx = ~np.isnan(sigma_data.values)
 t_data_clean = t_data[valid_idx]
-y_data_clean = y_data.values[valid_idx]
+y_data_clean = sigma_data.values[valid_idx]
 
 # 自定义 sigma^2(t) 结构
 def sigma_model(t, V, U, *coeffs):
@@ -46,7 +47,6 @@ def sigma_model(t, V, U, *coeffs):
 # 初始参数
 init_params = [1, 0] + [0.1]*(2*I)
 
-# 拟合
 assert not np.isnan(y_data_clean).any(), "y_data contains NaNs"
 # 拟合 Fourier 模型
 params, _ = curve_fit(sigma_model, t_data_clean, y_data_clean, p0=init_params)
@@ -56,6 +56,7 @@ def sigma(t):
     return np.sqrt(sigma_model(t, *params))
 
 # ===== Step 3: 欧拉法模拟温度路径 =====
+dt = 1  # 时间步长
 n_days = len(t)
 T_sim = np.zeros(n_days)
 T_sim[0] = y[0]
@@ -66,7 +67,7 @@ for i in range(1, n_days):
     dmu_dt = d_u_hat_dt(t[i])
     sigma_t = sigma(t[i])
     z = np.random.normal()
-    T_sim[i] = T_sim[i-1] + (dmu_dt + kappa * (mu_t - T_sim[i-1])) + sigma_t * z  # dt=1
+    T_sim[i] = T_sim[i-1] + (dmu_dt + kappa * (mu_t - T_sim[i-1])) * dt + sigma_t * np.sqrt(dt) * z  # dt=1
 
 # 存储或后续使用模拟路径 T_sim
 simulated_df = pd.DataFrame({
@@ -88,7 +89,7 @@ for path in range(n_paths):
         dmu_dt = d_u_hat_dt(t[i])
         sigma_t = sigma(t[i])
         z = np.random.normal()
-        T_sim[i] = T_sim[i-1] + (dmu_dt + kappa * (mu_t - T_sim[i-1])) + sigma_t * z  # dt=1
+        T_sim[i] = T_sim[i-1] + (dmu_dt + kappa * (mu_t - T_sim[i-1])) + sigma_t * z  # dt=1, FDM
     T_paths[path] = T_sim
 
 # ===== 可视化多个路径 =====
