@@ -26,12 +26,11 @@ params, cov = curve_fit(seasonal_model, t, y)
 a, b, a1, b1 = params
 daily_df['model'] = seasonal_model(t, *params)
 daily_df['residuals'] = daily_df['temperature_2m_mean'] - daily_df['model']
-# save the residuals to a CSV file
 daily_df['residuals'].to_csv('amsterdam_daily_temperature_residuals.csv')
 
 # ---------- STEP 4: 参数转换 ----------
 C = np.sqrt(a1**2 + b1**2)
-phi = np.arctan2(b1, a1)  # 注意：arctan2(y, x)
+phi = np.arctan2(b1, a1) - np.pi  # 注意：arctan2(y, x)
 phi_deg = np.degrees(phi)
 
 # ---------- STEP 5: 可视化 ----------
@@ -74,19 +73,33 @@ best_lag = 1
 best_model = None
 
 for lag in range(1, 6):
-    model = AutoReg(residuals, lags=lag, old_names=False).fit() # Xt = a0 + a1 * Xt-1 + a2 * Xt-2 + ... + e
+    model = AutoReg(residuals, lags=lag, old_names=False, trend='n').fit() # Xt = a0 + a1 * Xt-1 + a2 * Xt-2 + ... + e
     if model.aic < best_aic:
         best_aic = model.aic
         best_lag = lag
         best_model = model
 
 print(f"✅ 最佳 AR 阶数: {best_lag} (AIC = {best_aic:.2f})")
-print("\nAR 模型系数:")
+print("\nAR(1~5) 模型系数:")
 print(best_model.params)
 
 # ---------- STEP 8: 若为 AR(1)，估计 κ ----------
-model_ar1 = AutoReg(residuals, lags=1, old_names=False).fit()
-gamma = model_ar1.params[1]  # AR(1) 系数
+model_ar1 = AutoReg(residuals, lags=1, old_names=False, trend='n').fit()
+model_ar1.resid.to_csv('amsterdam_daily_temperature_AR1_residuals.csv')
+print("\nAR(1) 模型系数:")
+print(model_ar1.params)
+plt.figure(figsize=(12, 4))
+plt.plot(daily_df.index[1:], model_ar1.resid, label='AR(1) Residuals', color='red')
+plt.title('AR(1) Residuals')
+plt.xlabel('Date')
+plt.ylabel('Residuals')
+plt.legend()
+plt.grid(True)
+plt.savefig('figs/deterministic_temp_AR1_residuals.png', dpi=300, bbox_inches='tight')
+plt.show()
+plt.close()
+
+gamma = model_ar1.params[0]  # AR(1) 系数
 kappa = 1 - gamma  # 计算 κ
 
 plt.figure(figsize=(12, 4))
