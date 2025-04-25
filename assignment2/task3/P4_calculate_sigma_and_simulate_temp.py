@@ -76,7 +76,7 @@ simulated_df = pd.DataFrame({
 }).set_index('date')
 
 # ===== Step 4 扩展：模拟多个温度路径 =====
-n_paths = 10           # 模拟的路径数量
+n_paths = 50           # 模拟的路径数量
 n_days = len(t)        # 时间长度
 T_paths = np.zeros((n_paths, n_days))  # 所有模拟路径集合
 
@@ -89,8 +89,12 @@ for path in range(n_paths):
         dmu_dt = d_u_hat_dt(t[i])
         sigma_t = sigma(t[i])
         z = np.random.normal()
-        T_sim[i] = T_sim[i-1] + (dmu_dt + kappa * (mu_t - T_sim[i-1])) + sigma_t * z  # dt=1, FDM
+        T_sim[i] = T_sim[i-1] + (dmu_dt + kappa * (mu_t - T_sim[i-1])) * dt + sigma_t * np.sqrt(dt) * z  # dt=1, FDM
     T_paths[path] = T_sim
+
+# ===== 储存所有模拟路径 =====
+simulated_df_paths = pd.DataFrame(T_paths.T, columns=[f'Path_{i+1}' for i in range(n_paths)], index=daily_df.index)
+simulated_df_paths.to_csv('amsterdam_daily_temperature_simulated_paths.csv')
 
 # ===== 可视化多个路径 =====
 plt.figure(figsize=(12, 6))
@@ -106,7 +110,7 @@ plt.close()
 
 # ===== 对比实际和模拟路径 =====
 plt.figure(figsize=(12, 4))
-plt.plot(daily_df.index[7:], daily_df['temperature_2m_mean'][7:], label='Observed Temp', alpha=0.5)
+plt.plot(daily_df.index, daily_df['temperature_2m_mean'], label='Observed Temp', alpha=0.5)
 plt.plot(simulated_df.index, simulated_df['T_sim'], label='Simulated Temp', linestyle='--')
 plt.title('Simulated Temperature Path')
 plt.xlabel('Date')
