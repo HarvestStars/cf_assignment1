@@ -137,7 +137,7 @@ if __name__ == "__main__":
     xi = 0.3
     rho = -0.7
     T = 1.0
-    N = 252
+    N = 10000
     M = 10000
 
     # mote carlo simulate S and V paths
@@ -150,6 +150,12 @@ if __name__ == "__main__":
     K = 100  # strike price
     payoffs_euler = arithmetic_asian_call_payoff(S_euler, K)
     payoffs_milstein = arithmetic_asian_call_payoff(S_milstein, K)
+
+    print("Payoffs for Euler scheme:")
+    print(payoffs_euler[:5])  # Print first 5 payoffs for brevity
+
+    print("Payoffs for Milstein scheme:")
+    print(payoffs_milstein[:5])  # Print first 5 payoffs for brevity
 
     # Calculate the Monte Carlo price estimates and standard errors
     price_euler, stderr_euler, _ = monte_carlo_estimator(payoffs_euler, r, T)

@@ -35,11 +35,11 @@ if __name__ == "__main__":
 
     # 计算 MC 估计算术均值亚洲期权
     payoffs = sv_gen.arithmetic_asian_call_payoff(S_sim, K)
-    mc_price, mc_stderr = sv_gen.monte_carlo_estimator(payoffs, r, T)
+    mc_price, mc_stderr, _ = sv_gen.monte_carlo_estimator(payoffs, r, T)
 
     # 用几何平均重新计算 Monte Carlo payoff
     payoffs_geo = sv_gen.geometric_asian_call_payoff(S_sim, K)
-    mc_price_geo, mc_stderr_geo = sv_gen.monte_carlo_estimator(payoffs_geo, r, T)
+    mc_price_geo, mc_stderr_geo, _ = sv_gen.monte_carlo_estimator(payoffs_geo, r, T)
 
     # 几何均值亚洲期权封闭公式 baseline
     sigma = np.sqrt(V0)
