@@ -3,11 +3,7 @@ from numpy.random import default_rng
 from tqdm import tqdm
 
 # step 1: heston模型的模拟函数
-def simulate_heston_paths(
-    S0, V0, r, kappa, theta, xi, rho,
-    T, N, M,
-    scheme='euler'  # or 'milstein'
-):
+def simulate_heston_paths(S0, V0, r, kappa, theta, xi, rho, T, N, M, scheme='euler', return_z=False):
     """
     Simulate Heston paths using either Euler or Milstein scheme.
     
@@ -31,6 +27,9 @@ def simulate_heston_paths(
     dt = T / N
     S = np.zeros((M, N + 1))
     V = np.zeros((M, N + 1))
+    Z1_list = []
+    Z2_list = []
+
     S[:, 0] = S0
     V[:, 0] = V0
 
@@ -40,6 +39,9 @@ def simulate_heston_paths(
         ZV = Z1
         ZS = rho * Z1 + np.sqrt(1 - rho ** 2) * Z2
 
+        Z1_list.append(Z1)
+        Z2_list.append(Z2)
+
         V_prev = V[:, t - 1]
         S_prev = S[:, t - 1]
         V_pos = np.maximum(V_prev, 0)
@@ -48,10 +50,8 @@ def simulate_heston_paths(
         if scheme == 'euler':
             V_new = V_prev + kappa * (theta - V_pos) * dt + xi * np.sqrt(V_pos) * np.sqrt(dt) * ZV
         elif scheme == 'milstein':
-            V_new = (V_prev +
-                     kappa * (theta - V_pos) * dt +
-                     xi * np.sqrt(V_pos) * np.sqrt(dt) * ZV +
-                     0.25 * xi**2 * dt * ((ZV**2) - 1))
+            V_new = V_prev + kappa * (theta - V_pos) * dt + xi * np.sqrt(V_pos) * np.sqrt(dt) * ZV + 0.25 * xi**2 * dt * (ZV**2 - 1)
+
         else:
             raise ValueError("Invalid scheme. Use 'euler' or 'milstein'.")
 
@@ -65,8 +65,10 @@ def simulate_heston_paths(
             S[:, t] = (S_prev + r * S_prev * dt +
                        np.sqrt(V_pos) * S_prev * np.sqrt(dt) * ZS +
                        0.5 * V_pos * S_prev * dt * (ZS**2 - 1))
-
-    return S, V
+    if return_z:
+        return S, V, Z1_list, Z2_list
+    else:
+        return S, V
 
 # step 2: calculate the average payoff
 def arithmetic_asian_call_payoff(S_paths, K):
@@ -118,9 +120,11 @@ def monte_carlo_estimator(payoffs, r, T):
     - stderr: standard error of the estimate
     """
     discount_factor = np.exp(-r * T)
-    price = discount_factor * np.mean(payoffs)
-    stderr = discount_factor * np.std(payoffs, ddof=1) / np.sqrt(len(payoffs))
-    return price, stderr
+    discounted_payoffs = discount_factor * payoffs
+    price = np.mean(discounted_payoffs)
+    stderr = np.std(discounted_payoffs, ddof=1) / np.sqrt(len(payoffs))
+    variance = np.var(discounted_payoffs, ddof=1)  # 注意使用 ddof=1 是无偏估计
+    return price, stderr, variance
 
 
 if __name__ == "__main__":
@@ -148,8 +152,8 @@ if __name__ == "__main__":
     payoffs_milstein = arithmetic_asian_call_payoff(S_milstein, K)
 
     # Calculate the Monte Carlo price estimates and standard errors
-    price_euler, stderr_euler = monte_carlo_estimator(payoffs_euler, r, T)
-    price_milstein, stderr_milstein = monte_carlo_estimator(payoffs_milstein, r, T)
+    price_euler, stderr_euler, _ = monte_carlo_estimator(payoffs_euler, r, T)
+    price_milstein, stderr_milstein, _ = monte_carlo_estimator(payoffs_milstein, r, T)
 
     print(f"Euler estimate: {price_euler:.4f} ± {stderr_euler:.4f}")
     print(f"Milstein estimate: {price_milstein:.4f} ± {stderr_milstein:.4f}")

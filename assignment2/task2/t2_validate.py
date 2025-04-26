@@ -2,6 +2,7 @@ import numpy as np
 from scipy.stats import norm
 import t1_1_sv_generator as sv_gen
 
+# analytic Asian call option pricing using closed-form formula
 def geometric_asian_call_bs(S0, K, r, sigma, T, N):
     sigma_hat = sigma * np.sqrt((2 * N + 1) / (6 * (N + 1)))
     r_hat = 0.5 * (r - 0.5 * sigma ** 2) + 0.5 * sigma_hat ** 2
@@ -16,7 +17,7 @@ if __name__ == "__main__":
 
     # 参数设定
     S0 = 100
-    V0 = 0.04
+    V0 = 0.04           # which is actually σ^2 
     r = 0.05
     kappa = 0.0         # 可以设成0
     theta = V0
