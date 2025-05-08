@@ -49,7 +49,8 @@ df.to_csv("amsterdam_daily_temperature.csv")
 
 # Optional: quick plot
 df.plot(title="Daily Mean Temperature in Amsterdam (2m)", figsize=(12, 4))
-plt.ylabel("°C")
+plt.ylabel("Temperature (°C)", fontsize=14)
+plt.xlabel("Date", fontsize=14)
 plt.grid(True)
 plt.tight_layout()
 plt.savefig("figs/amsterdam_daily_temperature.png", dpi=300, bbox_inches="tight")

@@ -71,12 +71,13 @@ def plot_pricing_surface(surface_df, title="Option Pricing Surface", zlabel="Pri
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_trisurf(X, Y, Z, cmap="viridis", edgecolor='none')
 
-    ax.set_ylabel("Strike K")
-    ax.set_zlabel(zlabel)
-    ax.set_title(title)
+    ax.set_ylabel("Strike K", fontsize=14)
+    ax.set_zlabel(zlabel, fontsize=12)
+    ax.set_title(title, fontsize=16)
 
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     fig.autofmt_xdate()
+    fig.savefig(f"figs/{title.replace(' ', '_').lower()}.png", dpi=300, bbox_inches="tight")
     plt.show()
 
 # === Call Option ===
