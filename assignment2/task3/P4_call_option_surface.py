@@ -81,7 +81,7 @@ def plot_pricing_surface(surface_df, title="Option Pricing Surface", zlabel="Pri
     plt.show()
 
 # === Call Option ===
-surface_call = price_weather_derivative(df, payoff_type="call", alpha=1.0)
+surface_call = price_weather_derivative(df, payoff_type="call", N=1.0)
 plot_pricing_surface(surface_call, title="Call Option", zlabel="C_HDD (call)")
 
 # === Call Option with Cap ===
