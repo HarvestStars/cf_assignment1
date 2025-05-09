@@ -167,6 +167,46 @@ if __name__ == "__main__":
     M = 1000
     K = 100
 
+    # Step 1: Simulate Heston paths with Euler and Milstein schemes
+    # 固定随机种子以便两个图用同一组随机数
+    time_grid = np.linspace(0, T, N + 1)
+    np.random.seed(42)
+    Z1_all = [np.random.randn(M) for _ in range(N)]
+    Z2_all = [np.random.randn(M) for _ in range(N)]
+
+    # 欧拉法路径模拟
+    S_euler, _ = simulate_heston_paths(S0, V0, r, kappa, theta, xi, rho, T, N, M,
+                                    scheme='euler', Z1_list=Z1_all, Z2_list=Z2_all)
+
+    # 米尔斯坦法路径模拟
+    S_milstein, _ = simulate_heston_paths(S0, V0, r, kappa, theta, xi, rho, T, N, M,
+                                        scheme='milstein', Z1_list=Z1_all, Z2_list=Z2_all)
+
+    # 绘图：Euler
+    plt.figure(figsize=(10, 5))
+    for i in range(M):
+        plt.plot(time_grid, S_euler[i], lw=1)
+    plt.title('Monte Carlo Paths under Heston Model (Euler Scheme)', fontsize=16)
+    plt.xlabel('Time', fontsize=14)
+    plt.ylabel('Stock Price $S_t$', fontsize=14)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("monte_carlo_paths_euler.png", dpi=300)
+    plt.close()
+
+    # 绘图：Milstein
+    plt.figure(figsize=(10, 5))
+    for i in range(M):
+        plt.plot(time_grid, S_milstein[i], lw=1)
+    plt.title('Monte Carlo Paths under Heston Model (Milstein Scheme)', fontsize=16)
+    plt.xlabel('Time', fontsize=14)
+    plt.ylabel('Stock Price $S_t$', fontsize=14)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("monte_carlo_paths_milstein.png", dpi=300)
+    plt.close()
+
+    # step 2
     num_trials = 30
     prices_euler = []
     prices_milstein = []
@@ -199,9 +239,9 @@ if __name__ == "__main__":
     plt.figure(figsize=(10, 6))
     plt.plot(prices_euler, label='Euler Scheme', marker='o')
     plt.plot(prices_milstein, label='Milstein Scheme', marker='x')
-    plt.xlabel('Trial')
-    plt.ylabel('Estimated Price')
-    plt.title('Heston-based Arithmetic Asian Option Estimates\nEuler vs Milstein Schemes')
+    plt.xlabel('Trial', fontsize=14)
+    plt.ylabel('Estimated Price', fontsize=14)
+    plt.title('Heston-based Arithmetic Asian Option Estimates\nEuler vs Milstein Schemes', fontsize=16)
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
@@ -252,9 +292,9 @@ if __name__ == "__main__":
 
     # 设置横轴
     plt.xticks(indices, [str(i + 1) for i in range(num_trials)])
-    plt.xlabel('Trial')
-    plt.ylabel('Standard Error of Monte Carlo Estimate')
-    plt.title('Standard Error per Trial: Euler vs Milstein')
+    plt.xlabel('Trial', fontsize=14)
+    plt.ylabel('Standard Error of Monte Carlo Estimate', fontsize=14)
+    plt.title('Standard Error per Trial: Euler vs Milstein', fontsize=16)
     plt.legend()
     plt.grid(True, axis='y', linestyle='--', alpha=0.5)
     plt.tight_layout()
