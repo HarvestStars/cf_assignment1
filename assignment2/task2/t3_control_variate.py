@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 import t1_1_sv_generator as sv_gen
-import t2_validate as t2v
+import t2_analytical_validate as t2v
 
 if __name__ == "__main__":
     # 参数设定
@@ -13,8 +13,8 @@ if __name__ == "__main__":
     xi = 0.3
     rho = -0.7
     T = 1.0
-    N = 10000
-    M = 10000
+    N = 1000
+    M = 1000
     K = 100
     scheme = 'euler'  # or 'milstein'
 

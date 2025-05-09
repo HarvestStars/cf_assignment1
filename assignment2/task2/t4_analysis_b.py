@@ -2,6 +2,42 @@ import numpy as np
 import t4_analysis_a as t4a
 import matplotlib.pyplot as plt
 
+def plot_stderr_by_xi(sensitivity_results):
+    # 分类数据
+    xi_groups = {0.1: [], 1.0: []}
+    for res in sensitivity_results:
+        xi_groups[res['xi']].append(res)
+
+    for xi_val, group in xi_groups.items():
+        labels = []
+        plain_stderr = []
+        cv_stderr = []
+
+        for res in group:
+            label = f"ρ={res['rho']},K={res['K']}"
+            labels.append(label)
+            plain_stderr.append(res['plain_stderr'])
+            cv_stderr.append(res['cv_stderr'])
+
+        x = np.arange(len(labels))
+        width = 0.35
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.bar(x - width/2, plain_stderr, width, label='Plain MC', color='skyblue')
+        ax.bar(x + width/2, cv_stderr, width, label='Control Variate MC', color='lightgreen')
+
+        ax.set_xlabel('Parameter Combinations (ρ, K)', fontsize=14)
+        ax.set_ylabel('Standard Error', fontsize=14)
+        ax.set_title(f'Standard Error Comparison (ξ={xi_val})', fontsize=16)
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=45, ha='right')
+        ax.legend()
+        ax.grid(True, axis='y', linestyle='--', alpha=0.7)
+
+        fig.tight_layout()
+        fig.savefig(f"stderr_sensitivity_xi_{str(xi_val).replace('.', '')}.png")
+        plt.close()
+
 # 公共参数
 S0 = 100
 V0 = 0.04
@@ -9,8 +45,8 @@ r = 0.05
 kappa = 2.0
 theta = 0.04
 T = 1.0
-N = 252
-M = 10000   # 固定M，做敏感性分析
+N = 1000
+M = 1000   # 固定M，做敏感性分析
 scheme = 'euler'
 
 # 要变化的参数组合
@@ -46,35 +82,38 @@ for res in sensitivity_results:
           f"{res['plain_price']:12.4f} | {res['plain_stderr']:12.4f} | {res['plain_var']:12.6f} | "
           f"{res['cv_price']:12.4f} | {res['cv_stderr']:12.4f} | {res['cv_var']:12.6f}")
 
-# 整理数据
-labels = []
-plain_stderr = []
-cv_stderr = []
+# # 整理数据
+# labels = []
+# plain_stderr = []
+# cv_stderr = []
 
-for res in sensitivity_results:
-    label = f"ξ={res['xi']},ρ={res['rho']},K={res['K']}"
-    labels.append(label)
-    plain_stderr.append(res['plain_stderr'])
-    cv_stderr.append(res['cv_stderr'])
+# for res in sensitivity_results:
+#     label = f"ξ={res['xi']},ρ={res['rho']},K={res['K']}"
+#     labels.append(label)
+#     plain_stderr.append(res['plain_stderr'])
+#     cv_stderr.append(res['cv_stderr'])
 
-x = np.arange(len(labels))  # 横坐标位置
-width = 0.35  # 柱子宽度
+# x = np.arange(len(labels))  # 横坐标位置
+# width = 0.35  # 柱子宽度
 
-# 创建图
-fig, ax = plt.subplots(figsize=(14,6))
+# # 创建图
+# fig, ax = plt.subplots(figsize=(14,6))
 
-# 画两组柱子
-rects1 = ax.bar(x - width/2, plain_stderr, width, label='Plain MC', color='skyblue')
-rects2 = ax.bar(x + width/2, cv_stderr, width, label='Control Variate MC', color='lightgreen')
+# # 画两组柱子
+# rects1 = ax.bar(x - width/2, plain_stderr, width, label='Plain MC', color='skyblue')
+# rects2 = ax.bar(x + width/2, cv_stderr, width, label='Control Variate MC', color='lightgreen')
 
-# 加标签和标题
-ax.set_xlabel('Parameter Combinations')
-ax.set_ylabel('Standard Error')
-ax.set_title('Standard Error Comparison under Different Heston Parameters')
-ax.set_xticks(x)
-ax.set_xticklabels(labels, rotation=45, ha='right')
-ax.legend()
-ax.grid(True, axis='y', linestyle='--', alpha=0.7)
+# # 加标签和标题
+# ax.set_xlabel('Parameter Combinations')
+# ax.set_ylabel('Standard Error')
+# ax.set_title('Standard Error Comparison under Different Heston Parameters')
+# ax.set_xticks(x)
+# ax.set_xticklabels(labels, rotation=45, ha='right')
+# ax.legend()
+# ax.grid(True, axis='y', linestyle='--', alpha=0.7)
 
-fig.tight_layout()
-plt.show()
+# fig.tight_layout()
+# plt.show()
+
+
+plot_stderr_by_xi(sensitivity_results)

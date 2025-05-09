@@ -1,6 +1,6 @@
 import numpy as np
 import t1_1_sv_generator as sv_gen
-import t2_validate as t2v
+import t2_analytical_validate as t2v
 
 def run_simulation_optimal_c(S0, V0, r, kappa, theta, xi, rho, T, N, K, scheme, M):
     """单次仿真流程（带最优 c*）"""
@@ -63,10 +63,10 @@ if __name__ == "__main__":
     r = 0.05
     kappa = 2.0
     theta = 0.04
-    xi = 0.3
-    rho = -0.7
+    xi = 1.0
+    rho = -0.9
     T = 1.0
-    N = 252
+    N = 1000
     K = 100
     scheme = 'euler'
     M = 10000
@@ -92,10 +92,11 @@ if __name__ == "__main__":
         yval = bar.get_height()
         plt.text(bar.get_x() + bar.get_width()/2, yval + 0.0005, f'{yval:.6f}', ha='center', va='bottom', fontsize=9)
 
-    plt.ylabel('Variance')
-    plt.title('Variance Comparison: Plain MC vs Control Variate (c=1) vs Control Variate (optimal c*)')
+    plt.ylabel('Variance', fontsize=14)
+    plt.title('Variance Comparison: \nPlain MC vs Control Variate (c=1) vs Control Variate (optimal c*)', fontsize=16)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
+    plt.savefig("var_comparison_task4_100.png")
     plt.show()
 
     # 绘制 standard error 对比图
@@ -110,9 +111,10 @@ if __name__ == "__main__":
         yval = bar.get_height()
         plt.text(bar.get_x() + bar.get_width()/2, yval + 0.0005, f'{yval:.6f}', ha='center', va='bottom', fontsize=9)
 
-    plt.ylabel('Standard Error')
-    plt.title('Standard Error Comparison: Plain MC vs Control Variate (c=1) vs Control Variate (optimal c*)')
+    plt.ylabel('Standard Error', fontsize=14)
+    plt.title('Standard Error Comparison: \nPlain MC vs Control Variate (c=1) vs Control Variate (optimal c*)', fontsize=16)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
+    plt.savefig("std_err_comparison_task4_100.png")
     plt.show()
 
