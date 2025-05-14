@@ -56,6 +56,30 @@ def closed_form_up_and_out_call(S0, K, B, T, r, sigma, barrier_adjustment=1.0):
     price = (term1 - term2 + term3 + term4)
     return price
 
+def closed_form_up_and_out_call_with_tau(S0, K, B, tau, r, sigma, barrier_adjustment=1.0):
+    """
+    Closed-form pricing of an up-and-out barrier call option with input time-to-maturity tau.
+    """
+    H = B * barrier_adjustment
+    if S0 >= H or H <= K or tau <= 1e-8:
+        return 0.0  # Knocked out or no time
+
+    lambd = 1 + 2 * r / sigma**2
+    lambd2 = 1 - 2 * r / sigma**2
+
+    def d_plus(z):
+        return (np.log(z) + (r + 0.5 * sigma**2) * tau) / (sigma * np.sqrt(tau))
+
+    def d_minus(z):
+        return (np.log(z) + (r - 0.5 * sigma**2) * tau) / (sigma * np.sqrt(tau))
+
+    term1 = S0 * norm.cdf(d_plus(S0 / K)) - S0 * norm.cdf(d_plus(S0 / H))
+    term2 = (B / S0)**lambd * S0 * (norm.cdf(d_plus(B**2 / (K * S0))) - norm.cdf(d_plus(B / S0)))
+    term3 = -K * np.exp(-r * tau) * (norm.cdf(d_minus(S0 / K)) - norm.cdf(d_minus(S0 / H)))
+    term4 = K * np.exp(-r * tau) * (S0 / B)**lambd2 * (norm.cdf(d_minus(B**2 / (K * S0))) - norm.cdf(d_minus(B / S0)))
+
+    return term1 - term2 + term3 + term4
+
 if __name__ == "__main__":
 
     # Parameters (default setup, can be changed per run)

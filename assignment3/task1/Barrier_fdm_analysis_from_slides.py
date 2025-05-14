@@ -58,12 +58,13 @@ def compare_and_plot(x_values, label, param_name, K_fixed=100, B_fixed=120, sigm
     plt.plot(x_values, cf_prices, 'b-', label='Closed-form')
     plt.plot(x_values, fdm_prices, 'r--', label='FDM (implicit)')
     plt.plot(x_values, errors, 'k-.', label='Absolute Error')
-    plt.xlabel(label)
-    plt.ylabel('Option Price')
-    plt.title(f'Sensitivity of Barrier Option to {param_name}')
+    plt.xlabel(label, fontsize=12)
+    plt.ylabel('Option Price', fontsize=12)
+    plt.title(f'Sensitivity of Barrier Option to {param_name} Implicit FDM vs. Closed-form', fontsize=14)
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(f"figs/barrier/fdm_{param_name}_price_comparison.png", dpi=300)
     plt.show()
 
 # ==== 执行入口 ====

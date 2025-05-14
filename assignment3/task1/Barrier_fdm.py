@@ -43,7 +43,6 @@ def recover_C_from_phi(phi, x_grid, tau_grid, alpha, beta, r):
         C[m, :] = phi[m, :] * np.exp(alpha * x_grid + beta * tau - r * tau)
     return C
 
-
 if __name__ == "__main__":
     # 参数
     S0 = 100
