@@ -53,6 +53,7 @@ if __name__ == "__main__":
     V = recover_V_from_y(y, x_grid, tau_grid, a, b, K)
 
     # 对应 t = 0 ⇒ tau = max ⇒ 取 V[-1, :]
+    # 匹配闭合解中的 tau = T
     V_T = V[-1, :]
 
     # 数值计算 Delta（中间区域用中心差分）

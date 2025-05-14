@@ -49,6 +49,7 @@ def FDM_price(S0, K, B, sigma):
     C = recover_C_from_phi(phi, x_grid, tau_grid, alpha, beta, r)
 
     # 对应 t = 0 ⇔ tau = max ⇒ 最后一行
+    # 匹配闭合解中的 tau = T
     x0 = np.log(S0)
     C0 = np.interp(x0, x_grid, C[-1, :])
     return C0
