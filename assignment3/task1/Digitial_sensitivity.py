@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-from BS_fdm import heat_solver_implicit, heat_solver_cn, recover_C_from_phi
-from BS_montecarlo import binary_option_mc_price
+from assignment3.task1.Digitial_fdm import heat_solver_implicit, heat_solver_cn, recover_C_from_phi
+from assignment3.task1.Digitial_montecarlo import binary_option_mc_price
 
 def run_fdm_sigma(method, sigma, S_range=(50, 150), N=100, M=100):
     T = 1.0
