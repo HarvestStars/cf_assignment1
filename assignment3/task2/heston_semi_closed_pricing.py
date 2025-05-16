@@ -14,10 +14,11 @@ def bs_call_price(S0, K, r, T, sigma):
     return S0 * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
 
 # Invert BS to get implied volatility
-def implied_vol(C_market, S0, K, r, T):
+def implied_vol(C_model, S0, K, r, T):
     try:
-        return brentq(lambda sigma: bs_call_price(S0, K, r, T, sigma) - C_market, 1e-6, 3.0)
+        return brentq(lambda sigma: bs_call_price(S0, K, r, T, sigma) - C_model, 1e-6, 3.0)
     except ValueError:
+        print(f"Warning: failed to invert BS for C={C_model:.8f}, K={K:.2f}, T={T:.2f}")
         return np.nan
 
 # Surface generation
@@ -72,8 +73,6 @@ if __name__ == "__main__":
     sigma = 0.4
     rho = -0.3        # 较弱负相关 → 微笑趋于对称
     V0 = 0.04
-
-
 
     K_vals = np.linspace(80, 225, 15)
     T_vals = np.linspace(0.1, 2.0, 15)
