@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import norm
 
 def heat_solver_implicit(y0, dx, dt, M, alpha):
     """
@@ -68,29 +69,27 @@ def recover_C_from_phi(phi, x_grid, tau_grid, alpha, beta, r):
         C[m, :] = f
     return C
 
+def binary_option_analytic_price(S, K, T, t, r, sigma):
+    dt = T - t
+    dt = np.maximum(dt, 1e-10)  # 避免 sqrt(0)
+    d_minus = ((r - 0.5 * sigma ** 2) * dt + np.log(S / K)) / (sigma * np.sqrt(dt))
+    return np.exp(-r * dt) * norm.cdf(d_minus)
+
+# === 误差统计 ===
+def compute_error_metrics(abs_err, label=""):
+    mae = np.mean(abs_err)
+    max_err = np.max(abs_err)
+    mse = np.mean(abs_err**2)
+    print(f"=== {label} Error Statistics ===")
+    print(f"Mean Absolute Error (MAE): {mae:.6f}")
+    print(f"Max Absolute Error       : {max_err:.6f}")
+    print(f"Mean Squared Error (MSE): {mse:.6f}")
+    print()
 
 if __name__ == "__main__":
-    from scipy.stats import norm
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
     
-    def binary_option_analytic_price(S, K, T, t, r, sigma):
-        dt = T - t
-        dt = np.maximum(dt, 1e-10)  # 避免 sqrt(0)
-        d_minus = ((r - 0.5 * sigma ** 2) * dt + np.log(S / K)) / (sigma * np.sqrt(dt))
-        return np.exp(-r * dt) * norm.cdf(d_minus)
-
-    # === 误差统计 ===
-    def compute_error_metrics(abs_err, label=""):
-        mae = np.mean(abs_err)
-        max_err = np.max(abs_err)
-        mse = np.mean(abs_err**2)
-        print(f"=== {label} Error Statistics ===")
-        print(f"Mean Absolute Error (MAE): {mae:.6f}")
-        print(f"Max Absolute Error       : {max_err:.6f}")
-        print(f"Mean Squared Error (MSE): {mse:.6f}")
-        print()
-
     def run_fd_solver():
         # === 参数设定 ===
         T = 1.0

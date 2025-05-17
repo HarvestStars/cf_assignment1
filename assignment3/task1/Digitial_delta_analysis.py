@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # === 引用已有方法 ===
-from BS_fdm import heat_solver_cn, heat_solver_implicit, recover_C_from_phi
+from Digitial_fdm import heat_solver_cn, heat_solver_implicit, recover_C_from_phi
 
 def run_fdm_for_delta(method='cn', sigma=0.2, N=100, M=100):
     T = 1.0
