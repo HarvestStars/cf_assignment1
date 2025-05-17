@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # Load raw market IV data
 raw_data = np.load("../raw_data/raw_ivol_surfaces.npy", allow_pickle=True).item()
-date = "2023 11 03"
+date = "2023 11 01"
 market_vols = raw_data[date]["vols"]         # shape (15, N) N = 11
 market_strikes = raw_data[date]["strikes"]   # shape (15, N)
 market_tenors = raw_data[date]["tenors"]     # shape (N, ) 11个成熟期
@@ -73,3 +73,9 @@ result = minimize(heston_objective, initial_guess, bounds=bounds, method='L-BFGS
 opt_params = result.x
 print("Optimal Heston parameters:", opt_params)
 print("Calibration RMSE:", result.fun)
+
+# 1101 Optimal Heston parameters: [ 2.09426036  0.04388312  1.         -0.62524922  0.02800214]
+# Calibration RMSE: 0.021424048157241374
+
+# 1103 Optimal Heston parameters: [ 2.00211806  0.0413556   1.         -0.681164    0.03985482]
+# Calibration RMSE: 0.030523377920015936
