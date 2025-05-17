@@ -41,15 +41,17 @@ def plot_surface(X, Y, Z, zlabel, title):
     fig = plt.figure(figsize=(10, 7))
     ax = fig.add_subplot(111, projection='3d')
     surf = ax.plot_surface(K_grid, T_grid, Z, cmap='viridis', edgecolor='none')
-    ax.set_xlabel("Strike (K)")
-    ax.set_ylabel("Maturity (T)")
-    ax.set_zlabel(zlabel)
-    ax.set_title(title)
-
+    if zlabel == "Implied Volatility":
+        ax.set_xlabel("Moneyness log(K/S0)", fontsize=12)
+    else:
+        ax.set_xlabel("Strike (K)", fontsize=12)
+    ax.set_ylabel("Maturity (T)", fontsize=12)
+    ax.set_zlabel(zlabel, fontsize=12)
+    ax.set_title(title, fontsize=14)
     ax.invert_yaxis()
-    
     fig.colorbar(surf, shrink=0.5, aspect=10)
     plt.tight_layout()
+    plt.savefig(f'figs/{title.replace(" ", "_")}.png', dpi=300)
     plt.show()
 
 # Example usage
@@ -75,7 +77,7 @@ if __name__ == "__main__":
     V0 = 0.04
 
     K_vals = np.linspace(80, 225, 15)
-    T_vals = np.linspace(0.1, 2.0, 15)
+    T_vals = np.linspace(0.1, 3.0, 15)
 
     price_surf, iv_surf = generate_heston_surface(
         S0, r, kappa, theta, sigma, rho, V0, K_vals, T_vals
@@ -83,6 +85,5 @@ if __name__ == "__main__":
 
     log_moneyness = np.log(K_vals / S0)
 
-    plot_surface(K_vals, T_vals, price_surf, "Call Price", "Heston Call Price Surface")
-    plot_surface(log_moneyness, T_vals, iv_surf, "Implied Volatility", "Implied Vol Surface (BS from Heston)")
-
+    plot_surface(K_vals, T_vals, price_surf, "Call Price", "Heston Call-Price Surface (Semi Closed-form)")
+    plot_surface(log_moneyness, T_vals, iv_surf, "Implied Volatility", "Black–Scholes Implied‑Vol Surface (Semi Closed-form Heston)")

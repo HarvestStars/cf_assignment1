@@ -49,7 +49,7 @@ def plot_interp_iv_surface(vols, strikes, tenors, title="Interpolated IV Surface
     ax.set_ylabel("Maturity (Years)")
     ax.set_zlabel("Implied Volatility")
     ax.set_title(title)
-    ax.invert_yaxis()
+    # ax.invert_yaxis()
     fig.colorbar(surf, shrink=0.5, aspect=10)
     plt.tight_layout()
     plt.show()
@@ -79,13 +79,14 @@ def plot_iv_surface_moneyness(vol_matrix, strike_matrix, maturities, S0=1.0, tit
     ax = fig.add_subplot(111, projection='3d')
     surf = ax.plot_surface(moneyness, maturity_matrix, vol_matrix, cmap='viridis', edgecolor='none')
 
-    ax.set_xlabel("Moneyness (log(K/S0))")
-    ax.set_ylabel("Maturity (Years)")
-    ax.set_zlabel("Implied Volatility")
-    ax.set_title(title)
+    ax.set_xlabel("Moneyness (log(K/S0))", fontsize=12)
+    ax.set_ylabel("Maturity (T)", fontsize=12)
+    ax.set_zlabel("Implied Volatility", fontsize=12)
+    ax.set_title(title, fontsize=14)
     ax.invert_yaxis()
     fig.colorbar(surf, shrink=0.5, aspect=10)
     plt.tight_layout()
+    plt.savefig(f"figs/{title.replace(' ', '_')}.png", dpi=300)
     plt.show()
 
 if __name__ == "__main__":
@@ -97,15 +98,23 @@ if __name__ == "__main__":
     date = "2023 11 01"
 
     # Extract components from raw data
-    raw_vols = raw_data[date]["vols"]         # shape (15, N)
-    raw_strikes = raw_data[date]["strikes"]   # shape (15, N)
     raw_tenors = raw_data[date]["tenors"]     # shape (N,)
+    raw_strikes = raw_data[date]["strikes"]   # shape (15, N), 15 is number of strikes
+    raw_vols = raw_data[date]["vols"]         # shape (15, N), N is number of maturities(years)
 
     # Extract components from interpolated data
-    interp_vols = interp_data[date]["vols"]       # shape (N, 100)
-    interp_strikes = interp_data[date]["strikes"] # shape (100,)
     interp_tenors = interp_data[date]["tenors"]   # shape (N,)
+    interp_strikes = interp_data[date]["strikes"] # shape (100,)
+    interp_vols = interp_data[date]["vols"]       # shape (N, 100)
 
-    central_strike_guess = np.median(raw_strikes)
-    print(raw_vols.shape, raw_strikes.shape, raw_tenors.shape,interp_vols.shape, interp_strikes.shape, interp_tenors.shape)
-    plot_iv_surface_moneyness(raw_vols.T, raw_strikes.T, raw_tenors, S0=central_strike_guess, title="Raw IV Surface in Moneyness")
+    # 对于 maturity 最小的一组 raw 数据
+    strike_candidates = raw_strikes[:, 0]  # shape: (15,)
+    vols = raw_vols[:, 0]                  # shape: (15,)
+    S0_est = strike_candidates[np.argmin(vols)]  # IV 最小的 K 被当作 S0
+    print(f"Estimated S0: {S0_est} for {date}")
+
+    central_strike_guess_interp = np.median(interp_strikes)
+    print(f"Central strike guess: {central_strike_guess_interp} for {date}")
+    # print(raw_vols.shape, raw_strikes.shape, raw_tenors.shape,interp_vols.shape, interp_strikes.shape, interp_tenors.shape)
+    plot_iv_surface_moneyness(raw_vols.T, raw_strikes.T, raw_tenors, S0=S0_est, title="Raw SP500 Implied Volatility Surface(Moneyness)")
+    # plot_interp_iv_surface(interp_vols, interp_strikes, interp_tenors, title="Interpolated SP500 Implied Volatility Surface")

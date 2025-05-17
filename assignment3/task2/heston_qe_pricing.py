@@ -49,36 +49,53 @@ def bs_call_price(S0: float, K: float, r: float, T: float, sigma: float) -> floa
     d2 = d1 - sigma * np.sqrt(T)
     return S0 * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
 
+# def implied_vol(C_model, S0, K, r, T,
+#                 left=1e-6, right=5.0,
+#                 abs_tol=1e-8):
+#     """
+#     Robust BS implied σ  —— 自动处理零价格、内在价值边界、根区间无根等情况
+#     """
+#     # -- 内在 & 上界 --
+#     intrinsic = max(S0 - K * np.exp(-r * T), 0.0)
+#     upper     = S0                     # 理论上界
+
+#     # -- ① 全零价：MC 没抽到一次 ITM，直接 NaN --
+#     if C_model < abs_tol:
+#         print(f"Warning: C_model={C_model:.4f} < abs_tol={abs_tol:.4f}  →  NaN")
+#         return np.nan
+
+#     # -- ② clip 到合法区间 (intrinsic, upper) --
+#     C_adj = max(C_model, intrinsic + abs_tol)
+#     # if C_adj >= upper:
+#     #     return np.nan
+
+#     # -- ③ 求根 --
+#     try:
+#         f = lambda s: bs_call_price(S0, K, r, T, s) - C_adj
+#         # 若端点同号，说明 σ∈[left,right] 内无解  →  NaN
+#         if f(left)*f(right) > 0:
+#             return np.nan
+#         return brentq(f, left, right, maxiter=200)
+#     except Exception:          # RuntimeError or ZeroDivision
+#         return np.nan
+
+
+# Invert BS to get implied volatility
 def implied_vol(C_model, S0, K, r, T,
                 left=1e-6, right=5.0,
                 abs_tol=1e-8):
-    """
-    Robust BS implied σ  —— 自动处理零价格、内在价值边界、根区间无根等情况
-    """
-    # -- 内在 & 上界 --
-    intrinsic = max(S0 - K * np.exp(-r * T), 0.0)
-    upper     = S0                     # 理论上界
-
     # -- ① 全零价：MC 没抽到一次 ITM，直接 NaN --
     if C_model < abs_tol:
-        print(f"Warning: C_model={C_model:.4f} < abs_tol={abs_tol:.4f}  →  NaN")
-        return np.nan
-
-    # -- ② clip 到合法区间 (intrinsic, upper) --
-    C_adj = max(C_model, intrinsic + abs_tol)
-    if C_adj >= upper:
-        return np.nan
-
-    # -- ③ 求根 --
-    try:
-        f = lambda s: bs_call_price(S0, K, r, T, s) - C_adj
-        # 若端点同号，说明 σ∈[left,right] 内无解  →  NaN
-        if f(left)*f(right) > 0:
-            return np.nan
-        return brentq(f, left, right, maxiter=200)
-    except Exception:          # RuntimeError or ZeroDivision
+        # print(f"Warning: C_model={C_model:.4f} < abs_tol={abs_tol:.4f}  →  NaN")
         return np.nan
     
+    try:
+        return brentq(lambda sigma: bs_call_price(S0, K, r, T, sigma) - C_model, left, right)
+    except ValueError:
+        # print(f"Warning: failed to invert BS for C={C_model:.8f}, K={K:.2f}, T={T:.2f}")
+        return np.nan
+
+
 # -----------------------------------------------------------------------------
 # 3‑D plotting helper
 # -----------------------------------------------------------------------------
@@ -93,14 +110,18 @@ def plot_surface(X: np.ndarray, Y: np.ndarray, Z: np.ndarray, *,
     ax = fig.add_subplot(111, projection="3d")
 
     surf = ax.plot_surface(K_grid, T_grid, Z, cmap="viridis", edgecolor="none")
-    ax.set_xlabel("Strike (K)")
-    ax.set_ylabel("Maturity (T)")
-    ax.set_zlabel(zlabel)
-    ax.set_title(title)
+    if zlabel == "Implied σ":
+        ax.set_xlabel("Moneyness log(K/S0)", fontsize=12)
+    else:
+        ax.set_xlabel("Strike (K)", fontsize=12)
+    ax.set_ylabel("Maturity (T)", fontsize=12)
+    ax.set_zlabel(zlabel, fontsize=12)
+    ax.set_title(title, fontsize=14)
     ax.invert_yaxis()
 
     fig.colorbar(surf, shrink=0.5, aspect=10)
     plt.tight_layout()
+    plt.savefig(f"figs/{title.replace(' ', '_')}.png", dpi=300)
     plt.show()
 
 
@@ -119,7 +140,7 @@ def price_surface_mc(*,
                      K_list: np.ndarray,
                      T_list: np.ndarray,
                      Npaths: int = 200_000,
-                     Nsteps_per_year: int = 252,
+                     Nsteps_per_year: int = 1000,
                      seed: int | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Generate Heston option‑price surface via Monte‑Carlo.
 
@@ -214,7 +235,7 @@ if __name__ == "__main__":
     }
 
     strikes    = np.linspace(80, 225, 15)        # 80,…,225 (15 points)
-    maturities = np.linspace(0.1, 2.0, 15)
+    maturities = np.linspace(0.1, 3.0, 15)
 
     # ----------------------------
     # Monte‑Carlo pricing
@@ -225,7 +246,7 @@ if __name__ == "__main__":
         r=r,
         K_list=strikes,
         T_list=maturities,
-        Npaths=25_000,
+        Npaths=200_000,
         seed=2025,
         **heston_params,
     )
@@ -246,7 +267,7 @@ if __name__ == "__main__":
 
     moneyness = np.log(strikes / S0)
     plot_surface(
-        X=strikes,
+        X=moneyness,
         Y=maturities,
         Z=iv_surf,
         zlabel="Implied σ",
